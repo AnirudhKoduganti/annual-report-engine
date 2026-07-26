@@ -26,12 +26,17 @@ def get_recent_10k(cik):
     data = response.json() 
 
     forms = data["filings"]["recent"]["form"]
+    company_name = data["name"]
+    
     accession = data["filings"]["recent"]["accessionNumber"]
     primaryDoc = data["filings"]["recent"]["primaryDocument"]
 
     index = forms.index("10-K")
+    filing_date = data["filings"]["recent"]["filingDate"][index]
+    fiscal_year = data["filings"]["recent"]["reportDate"][index][:4]
 
-    return accession[index], primaryDoc[index]
+    
+    return company_name, filing_date, fiscal_year, accession[index], primaryDoc[index]
 
 def download_html(cik, accession, document):
     start = 0
@@ -60,21 +65,25 @@ def fetch_10k(ticker):
     if not os.path.exists("data"):
         os.makedirs("data")
 
+    cik = get_cik(ticker)
+    company_name, filing_date, fiscal_year, accession, document = get_recent_10k(cik)
+    
+
     if os.path.exists(f"data/{ticker}.html"):
         with open(f"data/{ticker}.html", "r", encoding="utf-8") as file:
-            return file.read() 
+            html = file.read()
+    else: 
+        html = download_html(cik, accession, document)
 
-    cik = get_cik(ticker)
-    accession, document = get_recent_10k(cik)
-    html = download_html(cik, accession, document)
+        with open(f"data/{ticker}.html", "w", encoding="utf-8") as file:
+            file.write(html)
 
-    with open(f"data/{ticker}.html", "w", encoding="utf-8") as file: 
-        file.write(html)
-
-    return html
-
-
-if __name__ == "__main__":
-    html = fetch_10k("AAPL")
-    print(html[:500])
+    return {
+        "ticker": ticker, 
+        "company_name": company_name,
+        "cik": cik, 
+        "filing_date": filing_date,
+        "fiscal_year": fiscal_year,
+        "html": html
+    }
     
