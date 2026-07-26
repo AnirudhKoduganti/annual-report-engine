@@ -31,6 +31,10 @@ def get_recent_10k(cik):
     accession = data["filings"]["recent"]["accessionNumber"]
     primaryDoc = data["filings"]["recent"]["primaryDocument"]
 
+    
+    if "10-K" not in forms:
+        print("No 10-K found")
+        return None
     index = forms.index("10-K")
     filing_date = data["filings"]["recent"]["filingDate"][index]
     fiscal_year = data["filings"]["recent"]["reportDate"][index][:4]
@@ -66,6 +70,9 @@ def fetch_10k(ticker):
         os.makedirs("data")
 
     cik = get_cik(ticker)
+
+    if get_recent_10k(cik) is None: 
+        return None
     company_name, filing_date, fiscal_year, accession, document = get_recent_10k(cik)
     
 
