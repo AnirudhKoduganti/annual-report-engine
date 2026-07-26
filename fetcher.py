@@ -87,3 +87,6 @@ def fetch_10k(ticker):
         "html": html
     }
     
+# if __name__ == "__main__":
+#     report = fetch_10k("AAPL")
+#     print(report["html"][:500])
