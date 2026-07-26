@@ -1,0 +1,21 @@
+I closely reread Apple's Item 1A, "Risk Factors" and Item 7, "Management's Discussion and Analysis." 
+
+What surprised me?
+ - What surprised me the most was how directly the two sections connect. Item 1A may appear to describe future hypothetical problems, but many of the risks are already 
+affecting Apple. 
+ - For example, Item 1A warns that tariffs and Apple's internationally concentrated supply chain could increase costs and reduce margins, while Item 7 confirms that 
+tariff costs contributed to a decline in product gross-margin percentage during 2025. 
+ - This showed me that Risk Factors are not just standard legal warnings, but it often identifies the causes behind the financial changes later reported in the MD&A. 
+ - I was also surprised by the weaknesses hidden behind Apple's overall 6% sales growth. Sales in Greater China and Wearables both decreased by 4%, while Services sales
+grew by 14% and reached a 75.4% gross margin compared to 36.8% for products. This showed me that Apple's regulatory risks involving the App Store, privacy, digital platforms, 
+and search-licensing agreements are much more financially important than I originally thought. 
+
+How I think the section boundaries can be detected programmatically: 
+ - To find section boundaries in a program, I would analyze the HTML structure instead of choosing the first matching text. The table of contents creates duplicate Item headings, 
+so the parser should collect all the possible headings, clean up the format, and find the actual section heading by looking at things like the formatting of the text around it, 
+the location, nearby content, and section length.
+ - Item 1A should start at "Item 1A. Risk Factors" and end before Item 1B, while Item 7 should start at its full MD&A heading and end before Item 7A. 
+ - I would then check the extracted sections using expected section titles and checking that the sections are long enough. The main thing I learned was thath finding the sections 
+accurately demands an understanding of the actual document's structure rather than just searching for keywords pertaining to each section. 
+ - Having an understanding of the structure along with the actual meaning of the text can help figure out what kinds of things to filter based on what is actually listed in the text
+and what could possibly be listed. 
