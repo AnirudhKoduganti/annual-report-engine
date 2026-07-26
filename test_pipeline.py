@@ -5,13 +5,18 @@ from storage import save_report
 tickers = ["AAPL", "MSFT", "XOM", "JPM", "NVDA"]
 
 for ticker in tickers:
+
     print(f"\n{ticker}: ")
+    print(f"\n------{ticker}------")
+
 
     report = fetch_10k(ticker)
 
     if report is None: 
         print(f"Skipping {ticker} because no recent 10-K filing found. ")
         continue 
+
+    
 
     sections = extract_sections(report["html"])
 
