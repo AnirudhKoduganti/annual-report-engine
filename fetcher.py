@@ -71,9 +71,11 @@ def fetch_10k(ticker):
 
     cik = get_cik(ticker)
 
-    if get_recent_10k(cik) is None: 
+    report_info = get_recent_10k(cik)
+
+    if report_info is None: 
         return None
-    company_name, filing_date, fiscal_year, accession, document = get_recent_10k(cik)
+    company_name, filing_date, fiscal_year, accession, document = report_info
     
 
     if os.path.exists(f"data/{ticker}.html"):
