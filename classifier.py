@@ -10,6 +10,7 @@ for company in companies:
     for section_name, section_text in report["sections"].items():
         data.append(
             {
+                "company": company,
                 "text": section_text,
                 "label": section_name
             }
