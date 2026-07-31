@@ -51,30 +51,31 @@ def read_paragraph(filename):
     with open(filename, "r", encoding="utf-8") as file:  
         return file.read() 
     
-tests = {
-    read_paragraph("paragraphs/business1.txt"): "business",
-    read_paragraph("paragraphs/business2.txt"): "business",
-    read_paragraph("paragraphs/business3.txt"): "business",
-    read_paragraph("paragraphs/business4.txt"): "business",
-    read_paragraph("paragraphs/risk1.txt"): "risk_factor",
-    read_paragraph("paragraphs/risk2.txt"): "risk_factor",
-    read_paragraph("paragraphs/risk3.txt"): "risk_factor",
-    read_paragraph("paragraphs/mda1.txt"): "mda",
-    read_paragraph("paragraphs/mda2.txt"): "mda",
-    read_paragraph("paragraphs/mda3.txt"): "mda",
-}
+if __name__ == "__main__":
+    tests = {
+        read_paragraph("paragraphs/business1.txt"): "business",
+        read_paragraph("paragraphs/business2.txt"): "business",
+        read_paragraph("paragraphs/business3.txt"): "business",
+        read_paragraph("paragraphs/business4.txt"): "business",
+        read_paragraph("paragraphs/risk1.txt"): "risk_factor",
+        read_paragraph("paragraphs/risk2.txt"): "risk_factor",
+        read_paragraph("paragraphs/risk3.txt"): "risk_factor",
+        read_paragraph("paragraphs/mda1.txt"): "mda",
+        read_paragraph("paragraphs/mda2.txt"): "mda",
+        read_paragraph("paragraphs/mda3.txt"): "mda",
+    }
 
-correct = 0
+    correct = 0
 
-for paragraph, expected in tests.items():
-    predict = tag_section(paragraph) 
-    print("Expected: ", expected)
-    print("Prediction: ", predict, "\n")
+    for paragraph, expected in tests.items():
+        predict = tag_section(paragraph) 
+        print("Expected: ", expected)
+        print("Prediction: ", predict, "\n")
 
-    if predict == expected:
-        correct += 1
+        if predict == expected:
+            correct += 1
 
-accuracy = (correct / len(tests)) * 100 
+    accuracy = (correct / len(tests)) * 100 
 
-print("You got ", correct, " correct out of ", len(tests), "tests.")
-print("Your accuracy is: ", accuracy, "%")
+    print("You got ", correct, " correct out of ", len(tests), "tests.")
+    print("Your accuracy is: ", accuracy, "%")
