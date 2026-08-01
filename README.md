@@ -150,10 +150,47 @@ The output on the console contains a iteration of the 5 companies listed in the 
 
 ## How to run everything 
 
-Install the required libraries located in the requirements.txt
+Download all the files listed and run the test_pipeline.py. You can customize which tickers to use to your own liking. 
+
+## Section Classifier Model 
+
+This week, the project was extended by adding machine learning concepts and having a classifier that predicts which section of a 10-K a piece of text belongs to. The goal was to compare a traditional rule-based approach from week 2 with a machine learning approach using a TF-IDF + Naive Bayes classifier. 
+
+### How it works 
+
+The classifier uses extracted 10-K sections from multiple companies as training data. 
+
+Here is the process: 
+
+ - Loads saved JSON reports using `load_report()`
+ - Extracts the four labeled sections(Business, Risk Factors, Management's Discussion and Analysis, and Financial Statements)
+ - Uses NVDA as a separate test company
+ - Learns based on the remaining companies(AAPL, MSFT, JPM)
+ - Converts text into numerical features using TF-IDF
+ - Trains a Multinomial Naive Bayes classifier
+ - Predicts the section labels for NVDA's extracted sections
+
+### TF-IDF Vectorization 
+
+TF-IDF converts text into numerical values that represent how important words are to each section. 
+
+The vectorizer was trained solely on the training companies and not on NVDA to prevent data leakage. 
+
+```python
+vectorizer = TfidfVectorizer(stop_words="english")
+
+train_vectors = vectorizer.fit_transform(text_train)
+test_vectors = vectorizer.transform(test_text)
+```
+
+### How to run everything 
+
+Install the following: 
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Then, download all the files listed and run the test_pipeline.py. You can customize which tickers to use to your own liking. 
+Then, download the zipped folder for this repository and run the classifier.py. You may change the companies to your own liking. 
+
+
