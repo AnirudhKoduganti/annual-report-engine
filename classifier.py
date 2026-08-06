@@ -81,15 +81,12 @@ for text in test_text:
 
 print(classification_report(test_label, predictions))
 
-index = 0
-
-for label in test_label:
-    print(
-        "Actual: ", label,
+for index, label in enumerate(test_label):
+    print (
+        "Actual: ", label, 
         "TF-IDF Prediction: ", predictions[index],
         "Rule-Based Prediction: ", rule_predic[index]
     )
-    index+=1
 
 """
 Initial Results(before stop word removal): 
