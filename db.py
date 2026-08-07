@@ -1,19 +1,11 @@
 import sqlite3 
 
 
-
-def get_connection(db_path):
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-
-    return conn 
-
-
 def create_tables(conn):
     cursor = conn.cursor() 
 
     cursor.execute("""
-    create table if not exists companies (
+    CREATE TABLE IF NOT EXISTS companies (
                     ticker TEXT PRIMARY KEY,
                     company_name TEXT,
                     cik TEXT,
@@ -24,7 +16,7 @@ def create_tables(conn):
     
     cursor.execute("""
 
-    create table if not exists sections (
+    CREATE TABLE IF NOT EXISTS sections (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     ticker TEXT,    
                     section_type TEXT, 
@@ -34,3 +26,43 @@ def create_tables(conn):
                     )
 """)
     conn.commit()
+
+
+def get_connection(db_path):
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+
+    return conn 
+
+
+def insert_report(conn, report_data):
+    cursor = conn.cursor()
+
+
+    cursor.execute(""" 
+        INSERT OR REPLACE INTO companies 
+        (ticker, company_name, cik, filing_date, fiscal_year)
+        VALUES (?, ?, ?, ?, ?) 
+    
+    """, (
+        report_data["ticker"], 
+        report_data["company_name"],
+        report_data["cik"],
+        report_data["filing_date"],
+        report_data["fiscal_year"]
+    ))
+
+    for section_type, text in report_data["sections"].items():
+        cursor.execute(""" 
+            INSERT INTO sections
+            (ticker, section_type, fiscal_year, text)
+            VALUES (?, ?, ?, ?)
+                       """, (
+                           report_data["ticker"],
+                           section_type, 
+                           report_data["fiscal_year"],
+                           text
+                       ))
+        
+    conn.commit()
+
