@@ -1,4 +1,4 @@
-S# annual-report-engine
+# annual-report-engine
 
 This is week 3 of the summer internship and is a continuation of the last repository. This week focuses on actually taking the things I learned in the prior weeks(and adding new skills) and making a working project out of it. I have started off by writing a detailed analysis of Apple's 10-K so I could better understand the structure. The following is about the code I produced this week. 
 
