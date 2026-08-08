@@ -1,4 +1,4 @@
-# annual-report-engine
+S# annual-report-engine
 
 This is week 3 of the summer internship and is a continuation of the last repository. This week focuses on actually taking the things I learned in the prior weeks(and adding new skills) and making a working project out of it. I have started off by writing a detailed analysis of Apple's 10-K so I could better understand the structure. The following is about the code I produced this week. 
 
@@ -182,6 +182,95 @@ vectorizer = TfidfVectorizer(stop_words="english")
 train_vectors = vectorizer.fit_transform(text_train)
 test_vectors = vectorizer.transform(test_text)
 ```
+
+## SQLite Database 
+
+The SQLite database stores the extracted sections from all of the companies in one searchable database. This allows the reports to be queried without opening each JSON file individually. 
+
+### How it works 
+
+ - Creates a SQLite database using Python's built-in `sqlite3` module
+ - Stores one row per company in the `companies` table
+ - Stores each extracted section in the `sections` table
+ - Connects each section to its company using the company's ticker
+ - Loads the saved JSON reports from the `data/` folder into the database
+ - Allows sections to be searched by keyword, company, or fiscal year
+
+### Database tables 
+
+The database contains two tables 
+
+`companies`
+
+Stores the extracted sections from each report:
+
+ - `id` - unique ID for each section
+ - `ticker` - ticker of the company the section belongs to
+ - `section_type` - type of section(`business`, `risk_factors`, `mda`, or `financials`)
+ - `fiscal_year` - fiscal year of the report
+ - `text` - full text of the extracted section
+
+### Database functions 
+
+The `db.py` file contains the database functions. 
+
+`create_tables(conn)` creates the `companies` and `sections` tables if they do not already exist. 
+
+`get_connection(db_path)` creates a connection to the SQLite database and sets the connection's row factory to `sqlite3.Row`
+
+`insert_report(conn, report_data)` inserts the company information and its four extracted into the database 
+
+### Loading Reports 
+
+`load_db.py` loads the saved JSON reports into the SQLite database. 
+
+The current database contains reports for: 
+
+ - AAPL
+ - MSFT
+ - JPM
+ - NVDA
+
+Each company produces one row in `companies` and four rows in `sections`
+
+### Query Functions 
+
+The database can be searched using three functions in `db.py`
+
+`search_by_keyword(conn, keyword, section_type=None)` searches section text for a keyword. A section type can optionally be provided to limit the search. 
+
+`get_sections_by_company(conn, ticker)` returns all sections belonging to a specific company 
+
+`get_sections_by_fiscal_year(conn, fiscal_year)` returns all sections from all companies for a specified fiscal year. 
+
+The query functions return rows instead of printing results, allowed the results to be used by other parts of the program. 
+
+
+### Query Demo 
+
+`query_demo.py` demonstrates the database search functions. 
+
+The demo answers these three questions: 
+
+1. Which companies mention "`tariffs`" in their Risk Factors?
+2. Which companies mention "`interest rate`" in their MD&A?
+3. How many characters are in each company's Business section?
+
+The searches found "`tariffs`" in the Risk Factors sections for AAPL, JPM, and NVDA. "`interest rate`" appeared in MD&A sections for AAPL and NVDA
+
+The demo also prints a 200-character preview of matching sections and the character count of each company's Business section. 
+
+### Running the Database 
+
+After installing the required libraries from `requirements.txt`, the database can be loaded by running: 
+
+python load_db.py 
+
+The query demonstration can then be run with: 
+
+python query_demo.py 
+
+
 
 ### How to run everything 
 
