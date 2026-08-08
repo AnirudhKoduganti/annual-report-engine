@@ -66,3 +66,63 @@ def insert_report(conn, report_data):
         
     conn.commit()
 
+
+def search_by_keyword(conn, keyword, section_type=None):
+    cursor = conn.cursor()
+
+    if section_type:
+        cursor.execute("""
+            SELECT * 
+            FROM sections
+            WHERE text LIKE ? 
+            AND section_type = ?
+            """, (f"%{keyword}%", section_type))
+        
+    else:
+        cursor.execute("""
+                        SELECT * 
+                        FROM sections
+                        WHERE text LIKE ?
+                        """, (f"%{keyword}%",))
+                       
+    rows = []
+
+    for row in cursor: 
+        rows.append(row)
+
+    return rows 
+
+
+def get_sections_by_company(conn, ticker):
+    cursor = conn.cursor()
+
+    cursor.execute("""
+                    SELECT *
+                    FROM sections
+                    WHERE ticker = ?
+                    """, (ticker,))
+                           
+                   
+    rows = []
+
+    for row in cursor:
+        rows.append(row)
+
+    return rows 
+
+def get_sections_by_fiscal_year(conn, fiscal_year):
+    cursor = conn.cursor()
+
+    cursor.execute("""
+                    SELECT *
+                    FROM sections
+                    WHERE fiscal_year = ?
+                    """, (fiscal_year,))
+                   
+    rows = []
+
+    for row in cursor:
+        rows.append(row)
+
+
+    return rows
