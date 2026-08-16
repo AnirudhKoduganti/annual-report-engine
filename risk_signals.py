@@ -1,6 +1,6 @@
 import csv
 import re
-from db import get_connection, get_sections_by_company  
+from db import get_connection
 
 lm_dict = {}
 
@@ -35,21 +35,76 @@ def score_text(text):
     return count 
 
 conn = get_connection("reports.db")
+cursor = conn.cursor()
 
-sections = get_sections_by_company(conn, "AAPL")  
+cursor.execute("""
+    SELECT *
+    FROM sections
 
-for row in sections: 
-    if row["section_type"] == "risk_factors":
-        print("Risk Factors:", score_text(row["text"]))
+""")
+sections = [] 
 
-    if row["section_type"] == "mda":
-        print("MD&A:", score_text(row["text"]))
+for row in cursor: 
+    sections.append(row)
 
+scored_sections = []
+
+for row in sections:
+    scores = score_text(row["text"])
+
+    scored_sections.append(
+        {
+            "ticker": row["ticker"],
+            "section_type": row["section_type"],
+            "fiscal_year": row["fiscal_year"],
+            "scores": scores
+        }
+    )
+
+for section in scored_sections:
+    print(section)
+
+totals = {}
+
+for section in scored_sections:
+    section_type = section["section_type"]
+
+    if section_type not in totals:
+        totals[section_type] = {
+            "Negative": 0, 
+            "Uncertainty": 0,
+            "count": 0
+        }
+
+    totals[section_type]["Negative"] += section["scores"]["Negative"]
+    totals[section_type]["Uncertainty"] += section["scores"]["Uncertainty"]
+    totals[section_type]["count"] += 1
+
+for section_type in totals:
+    negative_avg = totals[section_type]["Negative"] / totals[section_type]["count"]
+    uncertainty_avg = totals[section_type]["Uncertainty"] / totals[section_type]["count"]
+
+    print(section_type)
+    print("Average Negative: ", negative_avg)
+    print("Average Uncertainty: ", uncertainty_avg)
 
 """
 Task 1 Findings: 
 
 Apple's Risk Factors section had substantially higher Negative and Uncertainty scores than its MD&A section. This matches the expectation
 that Risk Factors use more language describing potential risks and uncertainty, while MD&A describes actual financial results and events.
+
+"""
+
+
+"""
+
+Task 2 Findings: 
+
+Risk Factors had the highest average Negative count at 569.0 and the highest average Uncertainty count was 360.5. This matches the expectation
+that Risk Factors contain more language describing potential negative outcomes and uncertainty. 
+
+Business sections had the second-highest average Negative and Uncertainty counts, which was somewhat surprising compared with the much lower 
+MD&A and Financial averages. These are raw counts, so differences in section length may contribute to the higher counts in longer sections.
 
 """
