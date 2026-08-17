@@ -273,19 +273,33 @@ for row in sections:
     if row["section_type"] == "mda":
         company_data[ticker]["events"].extend(find_realized_events(row["text"]))
 
+report_lines = []
+
 for ticker in company_data:
     risks = company_data[ticker]["risks"]
     events = company_data[ticker]["events"]
 
     signals = find_signals(risks, events)
 
-    print(ticker, "Signals:")
+    report_lines.append(f"{ticker} Signals:")
 
+    if not signals:
+        report_lines.append("No signals found. ")
+        report_lines.append("")
+        continue
     for signal in signals[:10]:
-        print("Topic: ", signal["topic"])
-        print("Stated Risk: ", signal["risk_sentence"])
-        print("Realized Event: ", signal["event_sentence"])
-        print("Signal Score: ", signal["signal_score"], "\n")
+        report_lines.append(f"Topic: {signal['topic']}")
+        report_lines.append(f"Signal Score: {signal['signal_score']}")
+        report_lines.append(f"Stated Risk: {signal['risk_sentence']}")
+        report_lines.append(f"Realized Event: {signal['event_sentence']}")
+        report_lines.append("")
+
+    report_lines.append("")
+
+with open("risk_report.txt", "w") as file:
+    file.write("\n".join(report_lines))
+
+print("Risk report saved.")
 
 totals = {}
 
@@ -340,5 +354,14 @@ The detector identifies stated risks using topic keywords and high LM Uncertaint
 Negative language and realized-event terms. It successfully produced tariff-related signals for AAPL and several signals for NVDA. MSFT
 and JPM had no qualifying signals. 
 
+
+"""
+
+"""
+
+Task 4 Findings: 
+
+AAPL had the strongest signals, mainly around tariffs. NVDA also had several signals, while MSFT and JPM had none. Some results may be
+false positives because the detector relies on keyword matching, so related words do not always mean the Risk Factors event actually occurred. 
 
 """
