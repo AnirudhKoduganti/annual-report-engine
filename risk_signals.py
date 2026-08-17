@@ -34,6 +34,201 @@ def score_text(text):
 
     return count 
 
+topics = [
+    "tariff",
+    "tariffs",
+    "supply chain",
+    "supply chains",
+    "interest rate",
+    "interest rates",
+    "litigation",
+    "inflation",
+    "recession",
+    "regulation",
+    "regulatory",
+    "cybersecurity",
+    "cyber security",
+    "data breach",
+    "data breaches",
+    "demand",
+    "shortage",
+    "shortages",
+    "foreign exchange",
+    "currency",
+    "geopolitical",
+    "export control",
+    "export controls",
+    "export restriction",
+    "export restrictions",
+    "export license",
+    "export licenses"
+]
+
+realized_terms = [
+    "increased",
+    "increases",
+    "increase",
+    "decreased",
+    "decreases",
+    "decrease",
+    "declined",
+    "declines",
+    "decline",
+    "reduced",
+    "reduction",
+    "reductions",
+    "resulted",
+    "resulting",
+    "caused",
+    "incurred",
+    "experienced",
+    "affected",
+    "affect",
+    "impact",
+    "impacts",
+    "impacted",
+    "lost",
+    "loss",
+    "losses",
+    "negative",
+    "negatively",
+    "charge",
+    "charges",
+    "impairment",
+    "impairments",
+    "diminished",
+    "disrupted",
+    "disruption",
+    "higher",
+    "lower",
+    "cost",
+    "costs",
+    "limited",
+    "limits",
+    "limiting",
+    "restricted",
+    "restrictions",
+    "prohibited",
+    "prevented",
+    "unable",
+    "unavailable",
+    "shortfall",
+    "shortfalls",
+    "decline",
+    "declining"
+]
+
+def split_sentences(text):
+    return re.split(r"(?<=[.!?])\s+", text)
+
+def find_topics(sentence):
+    found = []
+
+    sentence_lower = sentence.lower()
+
+    for topic in topics:
+        if topic.lower() in sentence_lower:
+            if topic not in found:
+                found.append(topic)
+    return found
+
+def has_realized_terms(sentence):
+    sentence = sentence.lower()
+
+    for term in realized_terms:
+        if re.search(r"\b" + re.escape(term) + r"\b", sentence):
+            return True
+    return False
+
+def find_stated_risks(text):
+    sentences = split_sentences(text)
+    
+    risks = []
+
+    for sentence in sentences:
+        found_topics = find_topics(sentence)
+
+        if found_topics:
+            scores = score_text(sentence)
+
+            if scores["Uncertainty"] >= 2:
+                for topic in found_topics:
+                    risks.append(
+                        {
+                            "topic": topic, 
+                            "sentence": sentence,
+                            "scores": scores
+                        }
+                    )
+    return risks 
+
+def find_realized_events(text):
+    sentences = split_sentences(text)
+    events = []
+
+    for sentence in sentences:
+        found_topics = find_topics(sentence)
+
+        if found_topics:
+            scores = score_text(sentence)
+
+            if scores["Negative"] >= 1 and has_realized_terms(sentence):
+                for topic in found_topics:
+                    events.append(
+                        {
+                            "topic": topic, 
+                            "sentence": sentence, 
+                            "scores": scores
+                        }
+                    )
+    return events
+
+stop_words = {
+    "the", "and", "that", "this", "with", "from",
+    "have", "has", "had", "were", "was", "are",
+    "our", "their", "they", "them", "company",
+    "companies", "could", "would", "may", "might",
+    "will", "can", "been", "being", "into",
+    "such", "other", "which", "than", "during",
+    "there", "these", "those", "also", "more",
+    "less", "because", "including"
+}
+
+def get_actual_words(sentence):
+    words = re.findall(r"[a-zA-Z]+", sentence.lower())
+
+    actual_words = []
+
+    for word in words:
+        if word not in stop_words and len(word) >= 4:
+            actual_words.append(word)
+
+    return actual_words
+
+def find_signals(stated_risks, realized_events):
+    signals = []
+
+    for risk in stated_risks:
+        for event in realized_events:
+            if risk["topic"] != event["topic"]:
+                continue
+
+            signal_score = risk["scores"]["Uncertainty"] + event["scores"]["Negative"]
+            signals.append(
+            {
+                "topic": risk["topic"],
+                "risk_sentence": risk["sentence"],
+                "event_sentence": event["sentence"],
+                "risk_scores": risk["scores"],
+                "event_scores": event["scores"],
+                "signal_score": signal_score
+            }
+        )
+
+    signals.sort(key=lambda x: x["signal_score"], reverse=True)
+
+    return signals 
+
 conn = get_connection("reports.db")
 cursor = conn.cursor()
 
@@ -61,8 +256,36 @@ for row in sections:
         }
     )
 
-for section in scored_sections:
-    print(section)
+company_data = {}
+
+for row in sections:
+    ticker = row["ticker"]
+
+    if ticker not in company_data:
+        company_data[ticker] = {
+            "risks": [],
+            "events": []
+        }
+
+    if row["section_type"] == "risk_factors":
+        company_data[ticker]["risks"].extend(find_stated_risks(row["text"]))
+
+    if row["section_type"] == "mda":
+        company_data[ticker]["events"].extend(find_realized_events(row["text"]))
+
+for ticker in company_data:
+    risks = company_data[ticker]["risks"]
+    events = company_data[ticker]["events"]
+
+    signals = find_signals(risks, events)
+
+    print(ticker, "Signals:")
+
+    for signal in signals[:10]:
+        print("Topic: ", signal["topic"])
+        print("Stated Risk: ", signal["risk_sentence"])
+        print("Realized Event: ", signal["event_sentence"])
+        print("Signal Score: ", signal["signal_score"], "\n")
 
 totals = {}
 
@@ -106,5 +329,16 @@ that Risk Factors contain more language describing potential negative outcomes a
 
 Business sections had the second-highest average Negative and Uncertainty counts, which was somewhat surprising compared with the much lower 
 MD&A and Financial averages. These are raw counts, so differences in section length may contribute to the higher counts in longer sections.
+
+"""
+
+"""
+
+Task 3 Findings: 
+
+The detector identifies stated risks using topic keywords and high LM Uncertainty scores, then searches MD&A for the same topics with 
+Negative language and realized-event terms. It successfully produced tariff-related signals for AAPL and several signals for NVDA. MSFT
+and JPM had no qualifying signals. 
+
 
 """
